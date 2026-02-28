@@ -21,7 +21,7 @@ const createOrder = async (req, res) => {
 
         // Map uploaded files to server-relative paths
         const attachments = req.files
-            ? req.files.map(f => `/uploads/${f.filename}`)
+            ? req.files.map(f => f.path)
             : [];
 
         const order = new Order({
@@ -124,7 +124,7 @@ const payOrder = async (req, res) => {
 
             // Handle file upload path
             if (req.file) {
-                order.paymentProof = `/uploads/${req.file.filename}`;
+                order.paymentProof = req.file.path;
             }
 
             const updatedOrder = await order.save();
@@ -162,7 +162,7 @@ const uploadPreviewImage = async (req, res) => {
         const order = await Order.findById(req.params.id);
         if (!order) return res.status(404).json({ message: 'Order not found' });
         if (!req.file) return res.status(400).json({ message: 'No file uploaded' });
-        order.previewImage = `/uploads/${req.file.filename}`;
+        order.previewImage = req.file.path;
         await order.save();
         res.json({ previewImage: order.previewImage });
     } catch (error) {

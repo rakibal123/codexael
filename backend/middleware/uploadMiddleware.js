@@ -1,54 +1,53 @@
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
 
-// Ensure uploads directory exists
-const uploadDir = path.join(__dirname, '../uploads');
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-// Set storage engine
-const storage = multer.diskStorage({
-    destination(req, file, cb) {
-        cb(null, 'uploads/');
-    },
-    filename(req, file, cb) {
-        cb(
-            null,
-            `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`
-        );
-    },
+// Configure Cloudinary with environment variables
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Check file type — images, PDFs, and ZIPs
-function checkFileType(file, cb) {
-    const filetypes = /jpg|jpeg|png|pdf|zip/;
-    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-    // Accept common zip mimetypes as well
-    const allowedMimes = [
-        'image/jpeg', 'image/png', 'image/jpg',
-        'application/pdf',
-        'application/zip',
-        'application/x-zip-compressed',
-        'application/octet-stream',
-        'multipart/x-zip',
-    ];
-    const mimetype = allowedMimes.includes(file.mimetype) || /pdf|jpeg|jpg|png/.test(file.mimetype);
+// Configure Cloudinary Storage
+const storage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: async (req, file) => {
+        // Map the original file extensions to Cloudinary resource types and formats
+        const fileExt = file.originalname.split('.').pop().toLowerCase();
 
-    if (extname && mimetype) {
-        return cb(null, true);
-    } else {
-        cb('Only images (JPG/PNG), PDFs, and ZIP files are allowed!');
-    }
-}
+        let folder = 'codexael/other';
+        if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExt)) {
+            folder = 'codexael/images';
+        } else if (fileExt === 'pdf') {
+            folder = 'codexael/documents';
+        } else if (fileExt === 'zip') {
+            folder = 'codexael/archives';
+        }
+
+        return {
+            folder: folder,
+            resource_type: 'auto', // Important for non-image files like PDFs and ZIPs
+            public_id: `${file.fieldname}-${Date.now()}`,
+        };
+    },
+});
 
 const upload = multer({
     storage,
     limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB per file
     fileFilter: function (req, file, cb) {
-        checkFileType(file, cb);
+        // Filter by extensions (Cloudinary handles mime-types well with resource_type: auto)
+        const filetypes = /jpg|jpeg|png|pdf|zip/;
+        const extname = filetypes.test(file.originalname.split('.').pop().toLowerCase());
+
+        if (extname) {
+            return cb(null, true);
+        } else {
+            cb(new Error('Only images (JPG/PNG), PDFs, and ZIP files are allowed!'));
+        }
     },
 });
 
 module.exports = upload;
+

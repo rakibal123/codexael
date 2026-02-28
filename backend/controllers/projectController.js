@@ -33,7 +33,26 @@ const getProjectById = async (req, res) => {
 // @access  Private/Admin
 const createProject = async (req, res) => {
     try {
-        const project = new Project(req.body);
+        const { title, description, liveLink, githubLink, techStack } = req.body;
+
+        const projectData = {
+            title,
+            description,
+            liveLink,
+            githubLink,
+            // If techStack is sent via FormData it might be a string
+            techStack: typeof techStack === 'string'
+                ? techStack.split(',').map(s => s.trim())
+                : techStack,
+        };
+
+        if (req.file) {
+            projectData.image = req.file.path;
+        } else if (req.body.image) {
+            projectData.image = req.body.image;
+        }
+
+        const project = new Project(projectData);
         const createdProject = await project.save();
         res.status(201).json(createdProject);
     } catch (error) {
@@ -46,10 +65,29 @@ const createProject = async (req, res) => {
 // @access  Private/Admin
 const updateProject = async (req, res) => {
     try {
-        const project = await Project.findByIdAndUpdate(req.params.id, req.body, {
+        const { title, description, liveLink, githubLink, techStack } = req.body;
+
+        const updateData = {
+            title,
+            description,
+            liveLink,
+            githubLink,
+            techStack: typeof techStack === 'string'
+                ? techStack.split(',').map(s => s.trim())
+                : techStack,
+        };
+
+        if (req.file) {
+            updateData.image = req.file.path;
+        } else if (req.body.image) {
+            updateData.image = req.body.image;
+        }
+
+        const project = await Project.findByIdAndUpdate(req.params.id, updateData, {
             new: true,
             runValidators: true,
         });
+
         if (project) {
             res.json(project);
         } else {
