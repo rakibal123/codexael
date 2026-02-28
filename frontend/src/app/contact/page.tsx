@@ -8,6 +8,8 @@ import { motion } from "framer-motion";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
 export default function ContactPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -22,7 +24,7 @@ export default function ContactPage() {
         setIsSubmitting(true);
 
         try {
-            await axios.post("http://localhost:5000/api/messages", {
+            await axios.post(`${API_URL}/api/messages`, {
                 name,
                 email,
                 subject,

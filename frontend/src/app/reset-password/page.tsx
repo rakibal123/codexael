@@ -6,6 +6,8 @@ import Link from "next/link";
 import { ArrowLeft, Loader2, CheckCircle2 } from "lucide-react";
 import axios from "axios";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
 function ResetPasswordForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -39,7 +41,7 @@ function ResetPasswordForm() {
         setError("");
 
         try {
-            const res = await axios.put(`http://localhost:5000/api/users/password/resetpassword/${token}`, { password });
+            const res = await axios.put(`${API_URL}/api/users/password/resetpassword/${token}`, { password });
             setSuccessMessage(res.data.message || "Password updated successfully");
 
             // Redirect to login after 3 seconds

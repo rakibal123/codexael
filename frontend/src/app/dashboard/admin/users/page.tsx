@@ -7,6 +7,8 @@ import { Loader2, Users, Trash2, ShieldCheck, Mail, User, Calendar } from "lucid
 import toast from "react-hot-toast";
 import { motion } from "framer-motion";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
 export default function AdminUsersPage() {
     const { user } = useAuthStore();
     const [usersList, setUsersList] = useState([]);
@@ -15,7 +17,7 @@ export default function AdminUsersPage() {
     const fetchUsers = async () => {
         try {
             const config = { headers: { Authorization: `Bearer ${user?.token}` } };
-            const res = await axios.get("http://localhost:5000/api/users", config);
+            const res = await axios.get(`${API_URL}/api/users`, config);
             setUsersList(res.data);
         } catch (error) {
             console.error("Failed to fetch users", error);
@@ -33,7 +35,7 @@ export default function AdminUsersPage() {
         if (!window.confirm("Are you sure you want to permanently delete this user?")) return;
         try {
             const config = { headers: { Authorization: `Bearer ${user?.token}` } };
-            await axios.delete(`http://localhost:5000/api/users/${userId}`, config);
+            await axios.delete(`${API_URL}/api/users/${userId}`, config);
             toast.success("User deleted");
             fetchUsers();
         } catch (error: any) {

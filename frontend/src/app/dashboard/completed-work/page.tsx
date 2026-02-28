@@ -7,6 +7,8 @@ import { Loader2, CheckCircle, ExternalLink, Download, CreditCard, Calendar, Pac
 import Link from "next/link";
 import { motion } from "framer-motion";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
 export default function CompletedWorkPage() {
     const { user } = useAuthStore();
     const [orders, setOrders] = useState([]);
@@ -16,7 +18,7 @@ export default function CompletedWorkPage() {
         const fetchOrders = async () => {
             try {
                 const config = { headers: { Authorization: `Bearer ${user?.token}` } };
-                const res = await axios.get("http://localhost:5000/api/orders/myorders", config);
+                const res = await axios.get(`${API_URL}/api/orders/myorders`, config);
                 setOrders(res.data.filter((order: any) => order.status === "Completed"));
             } catch (error) {
                 console.error("Failed to fetch completed orders", error);

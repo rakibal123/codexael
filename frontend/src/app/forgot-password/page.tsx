@@ -6,6 +6,8 @@ import Link from "next/link";
 import { ArrowLeft, Loader2, CheckCircle2 } from "lucide-react";
 import axios from "axios";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
 export default function ForgotPasswordPage() {
     const [email, setEmail] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -18,7 +20,7 @@ export default function ForgotPasswordPage() {
         setError("");
 
         try {
-            const res = await axios.post("http://localhost:5000/api/users/password/forgotpassword", { email });
+            const res = await axios.post(`${API_URL}/api/users/password/forgotpassword`, { email });
             setSuccessMessage(res.data.message || "Password reset link sent to your email.");
             // In development, normally we check console or response for the mock URL to click
             console.log("Mock Email Data:", res.data.mockEmailData);

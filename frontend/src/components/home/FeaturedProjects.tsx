@@ -6,6 +6,8 @@ import { ArrowRight, ExternalLink, Github } from "lucide-react";
 import { useEffect, useState } from "react";
 import axios from "axios";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
 export default function FeaturedProjects() {
     const [projects, setProjects] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -13,7 +15,7 @@ export default function FeaturedProjects() {
     useEffect(() => {
         const fetchProjects = async () => {
             try {
-                const res = await axios.get("http://localhost:5000/api/projects");
+                const res = await axios.get(`${API_URL}/api/projects`);
                 // Limit to 3 projects for featured section
                 setProjects(res.data.slice(0, 3));
             } catch (error) {

@@ -7,6 +7,8 @@ import toast from "react-hot-toast";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
 export default function NewOrderPage() {
     const { user } = useAuthStore();
 
@@ -78,7 +80,7 @@ export default function NewOrderPage() {
                 },
             };
 
-            await axios.post("http://localhost:5000/api/orders", formData, config);
+            await axios.post(`${API_URL}/api/orders`, formData, config);
 
             toast.success("Order request submitted successfully!");
             setIsSuccess(true);

@@ -7,6 +7,8 @@ import { Loader2, CreditCard, ExternalLink, ShieldCheck, Upload, X } from "lucid
 import Link from "next/link";
 import toast from "react-hot-toast";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
 export default function PaymentPage() {
     const { user } = useAuthStore();
     const [orders, setOrders] = useState([]);
@@ -26,7 +28,7 @@ export default function PaymentPage() {
                     Authorization: `Bearer ${user?.token}`,
                 },
             };
-            const res = await axios.get("http://localhost:5000/api/orders/myorders", config);
+            const res = await axios.get(`${API_URL}/api/orders/myorders`, config);
             // Include active orders OR orders that have payment explicitly linked.
             // Even if paid, we might want to show them if status is not completed yet.
             setOrders(res.data.filter((order: any) => order.status !== "Completed" || order.paymentLink));
@@ -71,7 +73,7 @@ export default function PaymentPage() {
                     'Content-Type': 'multipart/form-data'
                 },
             };
-            await axios.post(`http://localhost:5000/api/orders/${selectedOrder._id}/pay`, formData, config);
+            await axios.post(`${API_URL}/api/orders/${selectedOrder._id}/pay`, formData, config);
             toast.success("Payment proof submitted successfully! Awaiting admin confirmation.");
             setSelectedOrder(null);
             fetchOrders();
@@ -197,8 +199,8 @@ export default function PaymentPage() {
                                         type="button"
                                         onClick={() => setPaymentType('bKash')}
                                         className={`px-4 py-3 rounded-xl border text-sm font-medium transition-all ${paymentType === 'bKash'
-                                                ? 'bg-primary-600/20 border-primary-500 text-primary-400'
-                                                : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                                            ? 'bg-primary-600/20 border-primary-500 text-primary-400'
+                                            : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
                                             }`}
                                     >
                                         Mobile Wallet (bKash)
@@ -207,8 +209,8 @@ export default function PaymentPage() {
                                         type="button"
                                         onClick={() => setPaymentType('Bank Transfer')}
                                         className={`px-4 py-3 rounded-xl border text-sm font-medium transition-all ${paymentType === 'Bank Transfer'
-                                                ? 'bg-primary-600/20 border-primary-500 text-primary-400'
-                                                : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
+                                            ? 'bg-primary-600/20 border-primary-500 text-primary-400'
+                                            : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'
                                             }`}
                                     >
                                         Bank Transfer

@@ -6,6 +6,8 @@ import axios from "axios";
 import { Loader2, MessageSquare, Mail, Calendar, User, AlignLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
 export default function AdminMessagesPage() {
     const { user } = useAuthStore();
     const [messages, setMessages] = useState([]);
@@ -20,7 +22,7 @@ export default function AdminMessagesPage() {
                         Authorization: `Bearer ${user?.token}`,
                     },
                 };
-                const res = await axios.get("http://localhost:5000/api/messages", config);
+                const res = await axios.get(`${API_URL}/api/messages`, config);
                 setMessages(res.data);
             } catch (error) {
                 console.error("Failed to fetch messages", error);

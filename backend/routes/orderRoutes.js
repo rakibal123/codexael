@@ -4,7 +4,7 @@ const {
     createOrder,
     getUserOrders,
     getAllOrders,
-    updateOrderStatus,
+    updateOrder,
     deleteOrder,
     uploadPreviewImage,
     payOrder
@@ -21,7 +21,7 @@ router.route('/myorders')
     .get(protect, getUserOrders);
 
 router.route('/:id')
-    .put(protect, admin, updateOrderStatus)
+    .put(protect, updateOrder)
     .delete(protect, admin, deleteOrder);
 
 // Payment proof upload

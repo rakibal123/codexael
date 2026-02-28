@@ -6,7 +6,7 @@ import axios from "axios";
 import { Loader2, FolderPlus, PlusCircle, Edit2, Trash2, X } from "lucide-react";
 import toast from "react-hot-toast";
 
-const API_URL = "http://localhost:5000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export default function AdminProjectsPage() {
     const { user } = useAuthStore();

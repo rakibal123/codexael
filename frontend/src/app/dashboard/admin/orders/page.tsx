@@ -13,7 +13,7 @@ import toast from "react-hot-toast";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API_URL = "http://localhost:5000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 const statusConfig: Record<string, { label: string; icon: React.ReactNode; badge: string; select: string }> = {
     "Pending": {

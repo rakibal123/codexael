@@ -6,6 +6,8 @@ import axios from "axios";
 import { Loader2, LayoutDashboard, ShoppingCart, MessageSquare, Clock, CheckCircle } from "lucide-react";
 import { motion } from "framer-motion";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
 export default function AdminDashboardPage() {
     const { user } = useAuthStore();
     const [stats, setStats] = useState({
@@ -27,8 +29,8 @@ export default function AdminDashboardPage() {
 
                 // Fetch orders and messages concurrently
                 const [ordersRes, messagesRes] = await Promise.all([
-                    axios.get("http://localhost:5000/api/orders", config),
-                    axios.get("http://localhost:5000/api/messages", config)
+                    axios.get(`${API_URL}/api/orders`, config),
+                    axios.get(`${API_URL}/api/messages`, config)
                 ]);
 
                 const orders = ordersRes.data;

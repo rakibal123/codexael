@@ -70,32 +70,67 @@ const getAllOrders = async (req, res) => {
     }
 };
 
-// @desc    Update order status
+// @desc    Update order
 // @route   PUT /api/orders/:id
-// @access  Private/Admin
-const updateOrderStatus = async (req, res) => {
+// @access  Private
+const updateOrder = async (req, res) => {
     try {
-        const { status, deliverableLink, paymentLink, liveLink, githubLink, previewImage } = req.body;
-
-        const validStatuses = ['Pending', 'In Progress', 'Completed'];
-        if (!validStatuses.includes(status)) {
-            return res.status(400).json({ message: 'Invalid status' });
-        }
+        const { status, deliverableLink, paymentLink, liveLink, githubLink, previewImage, title, description, projectType, techPreference, budget, deadline } = req.body;
 
         const order = await Order.findById(req.params.id);
 
         if (order) {
-            // Lock: cannot change status if order is already Completed
-            if (order.status === 'Completed') {
-                return res.status(400).json({ message: 'Status is locked. This order has been marked as completed.' });
+            // AUTHORIZATION: Admin or Owner only
+            const isAdmin = req.user && req.user.role === 'admin';
+            const isOwner = req.user && order.userId.toString() === req.user._id.toString();
+
+            if (!isAdmin && !isOwner) {
+                return res.status(403).json({ message: 'Not authorized to update this order' });
             }
 
-            order.status = status;
-            if (deliverableLink !== undefined) order.deliverableLink = deliverableLink;
-            if (paymentLink !== undefined) order.paymentLink = paymentLink;
-            if (liveLink !== undefined) order.liveLink = liveLink;
-            if (githubLink !== undefined) order.githubLink = githubLink;
-            if (previewImage !== undefined) order.previewImage = previewImage;
+            // ADMIN LOGIC: Can update status and admin links
+            if (isAdmin) {
+                if (status) {
+                    const validStatuses = ['Pending', 'In Progress', 'Completed'];
+                    if (!validStatuses.includes(status)) {
+                        return res.status(400).json({ message: 'Invalid status' });
+                    }
+                    // Lock: cannot change status if order is already Completed
+                    if (order.status === 'Completed' && status !== 'Completed') {
+                        return res.status(400).json({ message: 'Status is locked. This order has been marked as completed.' });
+                    }
+                    order.status = status;
+                }
+                if (deliverableLink !== undefined) order.deliverableLink = deliverableLink;
+                if (paymentLink !== undefined) order.paymentLink = paymentLink;
+                if (liveLink !== undefined) order.liveLink = liveLink;
+                if (githubLink !== undefined) order.githubLink = githubLink;
+                if (previewImage !== undefined) order.previewImage = previewImage;
+            }
+
+            // USER/OWNER LOGIC: Can only update if 'Pending'
+            if (isOwner && !isAdmin) {
+                if (order.status !== 'Pending') {
+                    return res.status(400).json({ message: 'Orders can only be edited while they are Pending.' });
+                }
+                if (title !== undefined) order.title = title;
+                if (description !== undefined) order.description = description;
+                if (projectType !== undefined) order.projectType = projectType;
+                if (techPreference !== undefined) order.techPreference = techPreference;
+                if (budget !== undefined) order.budget = budget;
+                if (deadline !== undefined) order.deadline = deadline;
+            }
+
+            // Also allow Admin to update these fields if provided
+            if (isAdmin) {
+                if (title !== undefined) order.title = title;
+                if (description !== undefined) order.description = description;
+                if (projectType !== undefined) order.projectType = projectType;
+                if (techPreference !== undefined) order.techPreference = techPreference;
+                if (budget !== undefined) order.budget = budget;
+                if (deadline !== undefined) order.deadline = deadline;
+            }
+
             const updatedOrder = await order.save();
             res.json(updatedOrder);
         } else {
@@ -175,7 +210,7 @@ module.exports = {
     createOrder,
     getUserOrders,
     getAllOrders,
-    updateOrderStatus,
+    updateOrder,
     deleteOrder,
     uploadPreviewImage,
     payOrder
