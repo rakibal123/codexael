@@ -166,6 +166,7 @@ const uploadPreviewImage = async (req, res) => {
         await order.save();
         res.json({ previewImage: order.previewImage });
     } catch (error) {
+        console.error('uploadPreviewImage Error:', error);
         res.status(500).json({ message: error.message });
     }
 };

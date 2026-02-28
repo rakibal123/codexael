@@ -1,4 +1,5 @@
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
@@ -26,7 +27,6 @@ app.get('/api', (req, res) => {
 });
 
 // Make uploads folder static
-const path = require('path');
 app.use('/uploads', express.static(path.join(__dirname, '/uploads')));
 
 // Routes
