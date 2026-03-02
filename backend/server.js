@@ -12,7 +12,7 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.join(__dirname, '.env') });
 
 // Using 'import' for your local files (ensure these files use 'export default')
-import connectDB from './config/db.js'; 
+import connectDB from './config/db.js';
 import userRoutes from './routes/userRoutes.js';
 import passwordRoutes from './routes/passwordRoutes.js';
 import projectRoutes from './routes/projectRoutes.js';
@@ -26,11 +26,16 @@ connectDB();
 const app = express();
 
 // Middleware - Place CORS first!
-app.use(cors({
-  origin: "https://codexael.vercel.app",
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  credentials: true
-}));
+const corsOptions = {
+    origin: ["https://codexael.vercel.app", "https://codexael-bacekend.vercel.app", "http://localhost:3000"],
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
+    credentials: true,
+    optionsSuccessStatus: 204
+};
+
+app.use(cors(corsOptions));
+// Handle preflight
+app.options('*', cors(corsOptions));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
