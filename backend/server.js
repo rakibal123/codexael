@@ -26,6 +26,10 @@ app.get('/api', (req, res) => {
     res.json({ message: 'Welcome to Codexael API' });
 });
 
+app.get('/', (req, res) => {
+  res.send('Backend is running successfully!');
+});
+
 // Make uploads folder static
 app.use('/uploads', express.static(path.join(__dirname, '/uploads')));
 
