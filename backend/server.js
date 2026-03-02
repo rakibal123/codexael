@@ -29,6 +29,7 @@ const app = express();
 const corsOptions = {
     origin: ["https://codexael.vercel.app", "https://codexael-bacekend.vercel.app", "http://localhost:3000"],
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
+    allowedHeaders: ["Content-Type", "Authorization", "Accept"],
     credentials: true,
     optionsSuccessStatus: 204
 };
