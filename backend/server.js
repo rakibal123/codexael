@@ -1,29 +1,37 @@
-const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '.env') });
+import path from 'path';
+import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
 import express from 'express';
-const cors = require('cors');
-const connectDB = require('./config/db');
+import cors from 'cors';
 
-const userRoutes = require('./routes/userRoutes');
-const passwordRoutes = require('./routes/passwordRoutes');
-const projectRoutes = require('./routes/projectRoutes');
-const orderRoutes = require('./routes/orderRoutes');
-const messageRoutes = require('./routes/messageRoutes');
-const { notFound, errorHandler } = require('./middleware/errorMiddleware');
+// Standard ESM replacement for __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Initialize dotenv
+dotenv.config({ path: path.join(__dirname, '.env') });
+
+// Using 'import' for your local files (ensure these files use 'export default')
+import connectDB from './config/db.js'; 
+import userRoutes from './routes/userRoutes.js';
+import passwordRoutes from './routes/passwordRoutes.js';
+import projectRoutes from './routes/projectRoutes.js';
+import orderRoutes from './routes/orderRoutes.js';
+import messageRoutes from './routes/messageRoutes.js';
+import { notFound, errorHandler } from './middleware/errorMiddleware.js';
 
 // Connect to database
 connectDB();
 
 const app = express();
 
-// Middleware
+// Middleware - Place CORS first!
 app.use(cors({
   origin: "https://codexael.vercel.app",
-  methods: ["GET", "POST", "PUT", "DELETE"],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   credentials: true
 }));
-app.options("*", cors());
-app.use(cors(...));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -32,9 +40,7 @@ app.get('/api', (req, res) => {
     res.json({ message: 'Welcome to Codexael API' });
 });
 
-
-
-// Make uploads folder static
+// Static folder
 app.use('/uploads', express.static(path.join(__dirname, '/uploads')));
 
 // Routes
@@ -47,8 +53,5 @@ app.use('/api/messages', messageRoutes);
 // Error Middleware
 app.use(notFound);
 app.use(errorHandler);
-
-// Port
-const PORT = process.env.PORT || 5000;
 
 export default app;
