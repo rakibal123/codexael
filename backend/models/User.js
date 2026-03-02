@@ -1,5 +1,6 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
+import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 
 const userSchema = new mongoose.Schema(
     {
@@ -52,10 +53,10 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
 // Generate and hash password token
 userSchema.methods.getResetPasswordToken = function () {
     // Generate token
-    const resetToken = require('crypto').randomBytes(20).toString('hex');
+    const resetToken = crypto.randomBytes(20).toString('hex');
 
     // Hash token and set to resetPasswordToken field
-    this.resetPasswordToken = require('crypto')
+    this.resetPasswordToken = crypto
         .createHash('sha256')
         .update(resetToken)
         .digest('hex');
@@ -66,4 +67,5 @@ userSchema.methods.getResetPasswordToken = function () {
     return resetToken;
 };
 
-module.exports = mongoose.model('User', userSchema);
+const User = mongoose.model('User', userSchema);
+export default User;

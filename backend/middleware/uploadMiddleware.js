@@ -1,6 +1,6 @@
-const cloudinary = require('cloudinary').v2;
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
-const multer = require('multer');
+import { v2 as cloudinary } from 'cloudinary';
+import { CloudinaryStorage } from 'multer-storage-cloudinary';
+import multer from 'multer';
 
 // Configure Cloudinary with environment variables
 console.log('--- Cloudinary Config Debug ---');
@@ -48,12 +48,11 @@ const upload = multer({
         const extname = filetypes.test(file.originalname.split('.').pop().toLowerCase());
 
         if (extname) {
-            return cb(null, true);
+            cb(null, true);
         } else {
             cb(new Error('Only images (JPG/PNG), PDFs, and ZIP files are allowed!'));
         }
     },
 });
 
-module.exports = upload;
-
+export default upload;

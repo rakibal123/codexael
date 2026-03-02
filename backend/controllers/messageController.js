@@ -1,4 +1,4 @@
-const Message = require('../models/Message');
+import Message from '../models/Message.js';
 
 // @desc    Create a new message
 // @route   POST /api/messages
@@ -32,7 +32,7 @@ const getMessages = async (req, res) => {
     }
 };
 
-module.exports = {
+export {
     sendMessage,
     getMessages,
 };

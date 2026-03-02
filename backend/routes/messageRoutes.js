@@ -1,13 +1,13 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const {
+import {
     sendMessage,
     getMessages,
-} = require('../controllers/messageController');
-const { protect, admin } = require('../middleware/authMiddleware');
+} from '../controllers/messageController.js';
+import { protect, admin } from '../middleware/authMiddleware.js';
 
 router.route('/')
     .post(sendMessage)
     .get(protect, admin, getMessages);
 
-module.exports = router;
+export default router;

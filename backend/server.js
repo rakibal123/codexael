@@ -36,7 +36,7 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 // Handle preflight
-app.options('*', cors(corsOptions));
+// Removed redundant app.options call that was causing Express 5 path-to-regexp errors
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

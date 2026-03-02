@@ -1,14 +1,14 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const {
+import {
     getProjects,
     getProjectById,
     createProject,
     updateProject,
     deleteProject,
-} = require('../controllers/projectController');
-const { protect, admin } = require('../middleware/authMiddleware');
-const upload = require('../middleware/uploadMiddleware');
+} from '../controllers/projectController.js';
+import { protect, admin } from '../middleware/authMiddleware.js';
+import upload from '../middleware/uploadMiddleware.js';
 
 router.route('/')
     .get(getProjects)
@@ -19,4 +19,4 @@ router.route('/:id')
     .put(protect, admin, upload.single('image'), updateProject)
     .delete(protect, admin, deleteProject);
 
-module.exports = router;
+export default router;

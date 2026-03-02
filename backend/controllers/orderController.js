@@ -1,4 +1,4 @@
-const Order = require('../models/Order');
+import Order from '../models/Order.js';
 
 // @desc    Create new order (multipart/form-data with optional file attachments)
 // @route   POST /api/orders
@@ -206,7 +206,7 @@ const uploadPreviewImage = async (req, res) => {
     }
 };
 
-module.exports = {
+export {
     createOrder,
     getUserOrders,
     getAllOrders,

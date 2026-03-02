@@ -1,5 +1,5 @@
-const User = require('../models/User');
-const crypto = require('crypto');
+import User from '../models/User.js';
+import crypto from 'crypto';
 
 // @desc    Forgot Password
 // @route   POST /api/users/forgotpassword
@@ -69,7 +69,7 @@ const resetPassword = async (req, res) => {
     }
 };
 
-module.exports = {
+export {
     forgotPassword,
     resetPassword
 };

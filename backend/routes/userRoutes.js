@@ -1,14 +1,14 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const {
+import {
     registerUser,
     authUser,
     getUserProfile,
     getAllUsers,
     deleteUser,
     updateUserRole,
-} = require('../controllers/userController');
-const { protect, admin } = require('../middleware/authMiddleware');
+} from '../controllers/userController.js';
+import { protect, admin } from '../middleware/authMiddleware.js';
 
 router.post('/', registerUser);
 router.post('/register', registerUser); // Alias as requested in Step 7
@@ -18,4 +18,4 @@ router.route('/').get(protect, admin, getAllUsers);
 router.route('/:id').delete(protect, admin, deleteUser);
 router.route('/:id/role').put(protect, admin, updateUserRole);
 
-module.exports = router;
+export default router;

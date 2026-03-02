@@ -1,6 +1,6 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const {
+import {
     createOrder,
     getUserOrders,
     getAllOrders,
@@ -8,9 +8,9 @@ const {
     deleteOrder,
     uploadPreviewImage,
     payOrder
-} = require('../controllers/orderController');
-const { protect, admin } = require('../middleware/authMiddleware');
-const upload = require('../middleware/uploadMiddleware');
+} from '../controllers/orderController.js';
+import { protect, admin } from '../middleware/authMiddleware.js';
+import upload from '../middleware/uploadMiddleware.js';
 
 // Create new order (multipart/form-data, up to 5 reference files)
 router.route('/')
@@ -32,4 +32,4 @@ router.route('/:id/pay')
 router.route('/:id/preview')
     .post(protect, admin, upload.single('previewImage'), uploadPreviewImage);
 
-module.exports = router;
+export default router;

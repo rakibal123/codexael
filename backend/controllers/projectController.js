@@ -1,4 +1,4 @@
-const Project = require('../models/Project');
+import Project from '../models/Project.js';
 
 // @desc    Get all projects
 // @route   GET /api/projects
@@ -114,7 +114,7 @@ const deleteProject = async (req, res) => {
     }
 };
 
-module.exports = {
+export {
     getProjects,
     getProjectById,
     createProject,
