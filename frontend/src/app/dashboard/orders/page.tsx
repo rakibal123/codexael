@@ -5,7 +5,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import axios from "axios";
 import {
     Loader2, FileText, Clock, CheckCircle, XCircle, ExternalLink,
-    Calendar, CreditCard, Download, Link as LinkIcon, ChevronRight, X, Zap, Eye
+    Calendar, CreditCard, Download, Link as LinkIcon, ChevronRight, X, Zap, Eye, Settings2, Upload
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
@@ -28,6 +28,25 @@ export default function MyOrdersPage() {
         deadline: ""
     });
     const [isUpdating, setIsUpdating] = useState(false);
+    const [isPaying, setIsPaying] = useState(false);
+    const [paymentForm, setPaymentForm] = useState({
+        paymentType: "bKash",
+        transactionId: ""
+    });
+    const [paymentProofFile, setPaymentProofFile] = useState<File | null>(null);
+
+    // Admin management state
+    const [isAdminManaging, setIsAdminManaging] = useState(false);
+    const [manageForm, setManageForm] = useState({
+        status: "",
+        paymentLink: "",
+        deliverableLink: "",
+        liveLink: "",
+        githubLink: "",
+        previewImage: ""
+    });
+    const [managePreviewFile, setManagePreviewFile] = useState<File | null>(null);
+    const [isSavingManage, setIsSavingManage] = useState(false);
 
     useEffect(() => {
         const fetchOrders = async () => {
@@ -108,6 +127,84 @@ export default function MyOrdersPage() {
             toast.error(error.response?.data?.message || "Failed to update order");
         } finally {
             setIsUpdating(false);
+        }
+    };
+
+    const handlePaymentSubmit = async () => {
+        if (!paymentForm.transactionId && !paymentProofFile) {
+            toast.error("Please provide a transaction ID or proof screenshot");
+            return;
+        }
+
+        setIsPaying(true);
+        try {
+            const formData = new FormData();
+            formData.append("paymentType", paymentForm.paymentType);
+            if (paymentForm.transactionId) formData.append("transactionId", paymentForm.transactionId);
+            if (paymentProofFile) formData.append("paymentProof", paymentProofFile);
+
+            const config = {
+                headers: {
+                    Authorization: `Bearer ${user?.token}`,
+                    "Content-Type": "multipart/form-data",
+                },
+            };
+            const res = await axios.post(`${API_URL}/api/orders/${selectedOrder._id}/pay`, formData, config);
+
+            setOrders((prev: any) => prev.map((o: any) => o._id === selectedOrder._id ? res.data : o));
+            setSelectedOrder(res.data);
+            toast.success("Payment proof submitted!");
+            setPaymentProofFile(null);
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || "Payment submission failed");
+        } finally {
+            setIsPaying(false);
+        }
+    };
+
+    const handleOpenManage = () => {
+        setManageForm({
+            status: selectedOrder.status,
+            paymentLink: selectedOrder.paymentLink || "",
+            deliverableLink: selectedOrder.deliverableLink || "",
+            liveLink: selectedOrder.liveLink || "",
+            githubLink: selectedOrder.githubLink || "",
+            previewImage: selectedOrder.previewImage || ""
+        });
+        setIsAdminManaging(true);
+    };
+
+    const handleSaveManage = async () => {
+        setIsSavingManage(true);
+        try {
+            const config = { headers: { Authorization: `Bearer ${user?.token}` } };
+            let finalPreviewImage = manageForm.previewImage;
+
+            if (managePreviewFile) {
+                const fd = new FormData();
+                fd.append('previewImage', managePreviewFile);
+                const uploadRes = await axios.post(
+                    `${API_URL}/api/orders/${selectedOrder._id}/preview`,
+                    fd,
+                    { headers: { Authorization: `Bearer ${user?.token}`, 'Content-Type': 'multipart/form-data' } }
+                );
+                finalPreviewImage = uploadRes.data.previewImage;
+            }
+
+            const res = await axios.put(`${API_URL}/api/orders/${selectedOrder._id}`, {
+                ...manageForm,
+                previewImage: finalPreviewImage
+            }, config);
+
+            setOrders((prev: any) => prev.map((o: any) => o._id === selectedOrder._id ? res.data : o));
+            setSelectedOrder(res.data);
+            setIsAdminManaging(false);
+            setManagePreviewFile(null);
+            toast.success("Order updated by Admin");
+        } catch (error) {
+            toast.error("Management update failed");
+        } finally {
+            setIsSavingManage(false);
         }
     };
 
@@ -237,16 +334,16 @@ export default function MyOrdersPage() {
                                     <div className="flex-1">
                                         <div className="flex items-center gap-3 flex-wrap mb-1">
                                             <h2 className="text-xl font-bold text-white">
-                                                {isEditing ? `Edit Order` : selectedOrder.projectType}
+                                                {isEditing ? `Edit Order` : isAdminManaging ? "Manage Order (Admin)" : selectedOrder.projectType}
                                             </h2>
-                                            {!isEditing && getStatusBadge(selectedOrder.status)}
+                                            {!isEditing && !isAdminManaging && getStatusBadge(selectedOrder.status)}
                                         </div>
                                         <p className="text-xs text-gray-500">
-                                            {isEditing ? "Modify your project requirements" : `Ordered on ${new Date(selectedOrder.createdAt).toLocaleDateString()}`}
+                                            {isEditing ? "Modify your project requirements" : isAdminManaging ? "Update status and deliverables" : `Ordered on ${new Date(selectedOrder.createdAt).toLocaleDateString()}`}
                                         </p>
                                     </div>
                                     <button
-                                        onClick={() => { setSelectedOrder(null); setIsEditing(false); }}
+                                        onClick={() => { setSelectedOrder(null); setIsEditing(false); setIsAdminManaging(false); }}
                                         className="p-1.5 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
                                     >
                                         <X className="w-5 h-5" />
@@ -331,6 +428,90 @@ export default function MyOrdersPage() {
                                             >
                                                 {isUpdating ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                                                 Save Changes
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : isAdminManaging ? (
+                                    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Status</label>
+                                                <select
+                                                    value={manageForm.status}
+                                                    onChange={(e) => setManageForm({ ...manageForm, status: e.target.value })}
+                                                    className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:border-primary-500 outline-none"
+                                                >
+                                                    <option value="Pending">Pending</option>
+                                                    <option value="In Progress">In Progress</option>
+                                                    <option value="Completed">Completed</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Payment Link</label>
+                                                <input
+                                                    type="url"
+                                                    value={manageForm.paymentLink}
+                                                    onChange={(e) => setManageForm({ ...manageForm, paymentLink: e.target.value })}
+                                                    className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:border-primary-500 outline-none"
+                                                    placeholder="https://..."
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Deliverable Link</label>
+                                                <input
+                                                    type="url"
+                                                    value={manageForm.deliverableLink}
+                                                    onChange={(e) => setManageForm({ ...manageForm, deliverableLink: e.target.value })}
+                                                    className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:border-emerald-500 outline-none"
+                                                    placeholder="Drive/Dropbox link"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Live Demo</label>
+                                                <input
+                                                    type="url"
+                                                    value={manageForm.liveLink}
+                                                    onChange={(e) => setManageForm({ ...manageForm, liveLink: e.target.value })}
+                                                    className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:border-blue-500 outline-none"
+                                                    placeholder="Vercel/Netlify link"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">GitHub Link</label>
+                                            <input
+                                                type="url"
+                                                value={manageForm.githubLink}
+                                                onChange={(e) => setManageForm({ ...manageForm, githubLink: e.target.value })}
+                                                className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:border-gray-400 outline-none"
+                                                placeholder="GitHub repo URL"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Preview Image</label>
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={(e) => setManagePreviewFile(e.target.files?.[0] || null)}
+                                                className="w-full text-xs text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-primary-600/20 file:text-primary-400"
+                                            />
+                                        </div>
+                                        <div className="pt-4 flex gap-3">
+                                            <button
+                                                onClick={() => setIsAdminManaging(false)}
+                                                className="flex-1 px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white text-sm font-bold transition-all"
+                                            >
+                                                Cancel
+                                            </button>
+                                            <button
+                                                onClick={handleSaveManage}
+                                                disabled={isSavingManage}
+                                                className="flex-1 px-4 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50 flex items-center justify-center gap-2"
+                                            >
+                                                {isSavingManage ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                                                Save Admin Changes
                                             </button>
                                         </div>
                                     </div>
@@ -458,13 +639,77 @@ export default function MyOrdersPage() {
                                             </div>
                                         )}
 
-                                        {/* Nudge if no deliverable yet */}
-                                        {selectedOrder.status !== "Completed" && !selectedOrder.deliverableLink && !selectedOrder.liveLink && (
-                                            <div className="flex items-center gap-3 bg-white/5 border border-white/5 rounded-xl p-3 text-sm text-gray-500">
-                                                <Clock className="w-4 h-4 shrink-0" />
-                                                Our team is working on your project. Deliverables will appear here once ready.
+                                    </div>
+                                )}
+
+                                {/* Payment Submission Section (If not paid) */}
+                                {!selectedOrder.transactionId && !selectedOrder.paymentProof && (
+                                    <div className="rounded-2xl border border-primary-500/20 bg-primary-500/5 p-5 space-y-4">
+                                        <div className="flex items-center gap-2 text-primary-400">
+                                            <CreditCard className="w-4 h-4" />
+                                            <p className="text-xs font-bold uppercase tracking-wider">Submit Payment Proof</p>
+                                        </div>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            <div>
+                                                <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Method</label>
+                                                <select
+                                                    value={paymentForm.paymentType}
+                                                    onChange={(e) => setPaymentForm({ ...paymentForm, paymentType: e.target.value })}
+                                                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none"
+                                                >
+                                                    <option value="bKash" className="bg-[#0f1623]">bKash</option>
+                                                    <option value="Bank Transfer" className="bg-[#0f1623]">Bank Transfer</option>
+                                                </select>
                                             </div>
-                                        )}
+                                            <div>
+                                                <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Transaction ID</label>
+                                                <input
+                                                    type="text"
+                                                    value={paymentForm.transactionId}
+                                                    onChange={(e) => setPaymentForm({ ...paymentForm, transactionId: e.target.value })}
+                                                    placeholder="TrxID..."
+                                                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none placeholder:text-gray-600"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Proof Image (Optional)</label>
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={(e) => setPaymentProofFile(e.target.files?.[0] || null)}
+                                                className="block w-full text-[10px] text-gray-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[10px] file:font-bold file:bg-primary-600/20 file:text-primary-400 hover:file:bg-primary-600/30 transition-all border border-white/10 rounded-lg p-1"
+                                            />
+                                        </div>
+                                        <button
+                                            onClick={handlePaymentSubmit}
+                                            disabled={isPaying}
+                                            className="w-full py-2.5 rounded-xl bg-primary-600 hover:bg-primary-500 text-white text-xs font-bold transition-all flex items-center justify-center gap-2"
+                                        >
+                                            {isPaying ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                                            Submit Payment Details
+                                        </button>
+                                    </div>
+                                )}
+
+                                {/* Admin Action Bar */}
+                                {user?.role === "admin" && (
+                                    <div className="pt-4 border-t border-white/10 flex gap-3">
+                                        <button
+                                            onClick={handleOpenManage}
+                                            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 text-amber-400 text-sm font-bold transition-all"
+                                        >
+                                            <Settings2 className="w-4 h-4" />
+                                            Admin: Manage Order
+                                        </button>
+                                    </div>
+                                )}
+
+                                {/* Nudge if no deliverable yet */}
+                                {selectedOrder.status !== "Completed" && !selectedOrder.deliverableLink && !selectedOrder.liveLink && (
+                                    <div className="flex items-center gap-3 bg-white/5 border border-white/5 rounded-xl p-3 text-sm text-gray-500">
+                                        <Clock className="w-4 h-4 shrink-0" />
+                                        Our team is working on your project. Deliverables will appear here once ready.
                                     </div>
                                 )}
                             </div>

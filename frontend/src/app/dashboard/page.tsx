@@ -11,10 +11,22 @@ export default function DashboardPage() {
     const [stats, setStats] = useState({ total: 0, active: 0, completed: 0 });
 
     useEffect(() => {
-        // In a real app, we'd fetch actual stats from backend
-        // Since API isn't fully plugged in yet, we'll mock for display.
-        setStats({ total: 5, active: 2, completed: 3 });
-    }, []);
+        const fetchStats = async () => {
+            if (!user?.token) return;
+            try {
+                const { data } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/orders/stats`, {
+                    headers: {
+                        Authorization: `Bearer ${user.token}`,
+                    },
+                });
+                setStats(data);
+            } catch (error) {
+                console.error("Error fetching dashboard stats:", error);
+            }
+        };
+
+        fetchStats();
+    }, [user?.token]);
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">

@@ -7,7 +7,8 @@ import {
     updateOrder,
     deleteOrder,
     uploadPreviewImage,
-    payOrder
+    payOrder,
+    getOrderStats
 } from '../controllers/orderController.js';
 import { protect, admin } from '../middleware/authMiddleware.js';
 import upload from '../middleware/uploadMiddleware.js';
@@ -19,6 +20,9 @@ router.route('/')
 
 router.route('/myorders')
     .get(protect, getUserOrders);
+
+router.route('/stats')
+    .get(protect, getOrderStats);
 
 router.route('/:id')
     .put(protect, updateOrder)

@@ -205,6 +205,20 @@ const uploadPreviewImage = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+// @desc    Get order stats for logged in user
+// @route   GET /api/orders/stats
+// @access  Private
+const getOrderStats = async (req, res) => {
+    try {
+        const total = await Order.countDocuments({ userId: req.user._id });
+        const active = await Order.countDocuments({ userId: req.user._id, status: 'In Progress' });
+        const completed = await Order.countDocuments({ userId: req.user._id, status: 'Completed' });
+
+        res.json({ total, active, completed });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
 
 export {
     createOrder,
@@ -213,5 +227,6 @@ export {
     updateOrder,
     deleteOrder,
     uploadPreviewImage,
-    payOrder
+    payOrder,
+    getOrderStats
 };
